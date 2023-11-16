@@ -1,0 +1,69 @@
+<!-- File: templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowTime</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>FlowTime</h1>
+
+        <!-- Form for creating predefined tasks -->
+        <form action="{{ url_for('add_task') }}" method="post" class="task-form">
+            <label for="task_name">Create Task:</label>
+            <input type="text" id="task_name" name="task_name" required>
+            <button type="submit">Add</button>
+        </form>
+
+        <!-- Form for starting a session -->
+        <form action="{{ url_for('start_session') }}" method="post" class="task-form">
+            <label for="task_id">Start Session:</label>
+            <select id="task_id" name="task_id" required>
+                {% for task in tasks %}
+                <option value="{{ task.id }}">{{ task.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Start</button>
+        </form>
+
+        <!-- List of sessions -->
+        <h2>Sessions:</h2>
+        {% for task in tasks %}
+        {% if task.sessions %}
+        <div class="task-sessions">
+            <h3>{{ task.name }}</h3>
+            {% set grouped_sessions = group_sessions_by_date(task.sessions) %}
+            <ul>
+                {% for date, sessions in grouped_sessions.items() %}
+                <li class="date">{{ date.strftime('%Y-%m-%d') }}</li>
+                {% for session in sessions %}
+                <li class="session">
+                    <span class="time">{{ session.start_time.strftime('%H:%M') }}</span>
+                    <span> → </span>
+                    {% if session.end_time %}
+                    <span class="time">{{ session.end_time.strftime('%H:%M') }}</span>
+                    <span class="spent">Spent: {{ format_time((session.end_time - session.start_time).seconds) }}</span>
+                    {% else %}
+                    <a class="end-session" href="{{ url_for('end_session', session_id=session.id) }}">End</a>
+                    {% endif %}
+                    <a class="end-session delete-session"
+                        href="{{ url_for('delete_session', session_id=session.id) }}">Delete</a>
+                </li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+
+
+    </div>
+</body>
+
+</html>
