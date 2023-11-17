@@ -1,4 +1,3 @@
-<!-- File: templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -33,21 +32,20 @@
 
         <!-- List of sessions -->
         <h2>Sessions:</h2>
-        {% for task in tasks %}
-        {% if task.sessions %}
+        {% set grouped_sessions = group_sessions_by_date(tasks) %}
+        {% for date, task_sessions in grouped_sessions.items() %}
+        <div class="date">{{ date.strftime('%Y-%m-%d') }}</div>
+        {% for task_name, sessions in task_sessions.items() %}
         <div class="task-sessions">
-            <h3>{{ task.name }}</h3>
-            {% set grouped_sessions = group_sessions_by_date(task.sessions) %}
+            <h3>{{ task_name }}</h3>
             <ul>
-                {% for date, sessions in grouped_sessions.items() %}
-                <li class="date">{{ date.strftime('%Y-%m-%d') }}</li>
                 {% for session in sessions %}
                 <li class="session">
                     <span class="time">{{ session.start_time.strftime('%H:%M') }}</span>
                     <span> → </span>
                     {% if session.end_time %}
                     <span class="time">{{ session.end_time.strftime('%H:%M') }}</span>
-                    <span class="spent">Spent: {{ format_time((session.end_time - session.start_time).seconds) }}</span>
+                    <span class="spent">Spent: {{ format_time(session.spent_time) }}</span>
                     {% else %}
                     <a class="end-session" href="{{ url_for('end_session', session_id=session.id) }}">End</a>
                     {% endif %}
@@ -55,13 +53,22 @@
                         href="{{ url_for('delete_session', session_id=session.id) }}">Delete</a>
                 </li>
                 {% endfor %}
-                {% endfor %}
             </ul>
         </div>
-        {% endif %}
+        {% endfor %}
         {% endfor %}
 
+        <!-- ... -->
+        <h2>Total Spent Today:</h2>
+        {% for task_name, total_time in today_totals.items() %}
+        <p>{{ task_name }}: {{ format_time(total_time) }}</p>
+        {% endfor %}
 
+        <!-- Display total spent time for each task overall -->
+        <h2>Total Spent Overall:</h2>
+        {% for task_name, total_time_all in all_time_totals.items() %}
+        <p>{{ task_name }}: {{ format_time(total_time_all) }}</p>
+        {% endfor %}
 
     </div>
 </body>
